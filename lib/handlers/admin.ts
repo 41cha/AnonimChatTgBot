@@ -3,6 +3,16 @@ import { getQuestions, getOwners } from "../db";
 
 const ITEMS_PER_PAGE = 5;
 
+function escapeHtml(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 // Helper function to build the admin page message and keyboard
 async function buildAdminPage(page: number, passwordPrefix: string, targetUsername?: string) {
   const questionsCollection = await getQuestions();
@@ -17,9 +27,9 @@ async function buildAdminPage(page: number, passwordPrefix: string, targetUserna
     
     if (owner) {
       filter.owner_id = owner.telegram_id;
-      ownerInfo = `\nФільтр: юзер @${cleanUsername}`;
+      ownerInfo = `\nФільтр: юзер @${escapeHtml(cleanUsername)}`;
     } else {
-      return { text: `Користувача з юзернеймом @${cleanUsername} не знайдено.`, keyboard: new InlineKeyboard() };
+      return { text: `Користувача з юзернеймом @${escapeHtml(cleanUsername)} не знайдено.`, keyboard: new InlineKeyboard() };
     }
   }
 
@@ -38,18 +48,18 @@ async function buildAdminPage(page: number, passwordPrefix: string, targetUserna
     return { text: "База питань порожня або для цього фільтру нічого не знайдено.", keyboard: new InlineKeyboard() };
   }
 
-  let messageText = `🕵️‍♂️ **Анонімні питання (Сторінка ${safePage} з ${totalPages})**\nВсього питань: ${totalQuestions}${ownerInfo}\n\n`;
+  let messageText = `🕵️‍♂️ <b>Анонімні питання (Сторінка ${safePage} з ${totalPages})</b>\nВсього питань: ${totalQuestions}${ownerInfo}\n\n`;
 
   for (const q of questions) {
-    const senderName = q.sender_first_name || "Unknown";
-    const senderUsername = q.sender_username ? `(@${q.sender_username})` : "(без юзернейму)";
+    const senderName = escapeHtml(q.sender_first_name || "Unknown");
+    const senderUsername = q.sender_username ? `(@${escapeHtml(q.sender_username)})` : "(без юзернейму)";
     const date = new Date(q.created_at).toLocaleString("uk-UA", {
       timeZone: "Europe/Kyiv",
     });
 
-    messageText += `👤 **${senderName}** ${senderUsername}\n`;
+    messageText += `👤 <b>${senderName}</b> ${senderUsername}\n`;
     messageText += `📅 ${date}\n`;
-    messageText += `💬 _"${q.text}"_\n`;
+    messageText += `💬 <i>"${escapeHtml(q.text)}"</i>\n`;
     messageText += `--------------------------------------\n`;
   }
 
@@ -84,7 +94,7 @@ export async function handleAdmin(ctx: CommandContext<Context>): Promise<void> {
   const passwordPrefix = adminPassword.substring(0, 10);
   const { text, keyboard } = await buildAdminPage(1, passwordPrefix, targetUsername);
 
-  await ctx.reply(text, { parse_mode: "Markdown", reply_markup: keyboard });
+  await ctx.reply(text, { parse_mode: "HTML", reply_markup: keyboard });
 }
 
 // Handler for pagination callbacks
@@ -113,7 +123,7 @@ export async function handleAdminPagination(ctx: Context): Promise<void> {
   const { text, keyboard } = await buildAdminPage(page, expectedPrefix, targetUsername);
 
   await ctx.editMessageText(text, {
-    parse_mode: "Markdown",
+    parse_mode: "HTML",
     reply_markup: keyboard,
   }).catch(() => {}); // Ignore errors if content is exactly the same
 

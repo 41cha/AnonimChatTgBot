@@ -2,7 +2,7 @@ import { Bot } from "grammy";
 import { handleStart } from "./handlers/start";
 import { handleMessage } from "./handlers/message";
 import { handleReplyCallback } from "./handlers/reply";
-import { handleAdmin } from "./handlers/admin";
+import { handleAdmin, handleAdminPagination } from "./handlers/admin";
 
 // ---------------------------------------------------------------------------
 // Bot instance
@@ -22,6 +22,12 @@ export const bot = new Bot(BOT_TOKEN);
 
 // /admin (must be registered before /start or generic text handlers)
 bot.command("admin", handleAdmin);
+
+// Admin pagination callbacks
+bot.on("callback_query:data").filter(
+  (ctx) => ctx.callbackQuery.data.startsWith("adm_pg_"),
+  handleAdminPagination
+);
 
 // /start and /start <owner_id>
 bot.command("start", handleStart);

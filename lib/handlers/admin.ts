@@ -1,28 +1,44 @@
 import { CommandContext, Context, InlineKeyboard } from "grammy";
-import { getQuestions } from "../db";
+import { getQuestions, getOwners } from "../db";
 
 const ITEMS_PER_PAGE = 5;
 
 // Helper function to build the admin page message and keyboard
-async function buildAdminPage(page: number, passwordPrefix: string) {
+async function buildAdminPage(page: number, passwordPrefix: string, targetUsername?: string) {
   const questionsCollection = await getQuestions();
 
-  const totalQuestions = await questionsCollection.countDocuments();
+  let filter: any = {};
+  let ownerInfo = "";
+  let cleanUsername = targetUsername?.replace(/^@/, "");
+
+  if (cleanUsername) {
+    const ownersCollection = await getOwners();
+    const owner = await ownersCollection.findOne({ username: cleanUsername });
+    
+    if (owner) {
+      filter.owner_id = owner.telegram_id;
+      ownerInfo = `\nФільтр: юзер @${cleanUsername}`;
+    } else {
+      return { text: `Користувача з юзернеймом @${cleanUsername} не знайдено.`, keyboard: new InlineKeyboard() };
+    }
+  }
+
+  const totalQuestions = await questionsCollection.countDocuments(filter);
   const totalPages = Math.ceil(totalQuestions / ITEMS_PER_PAGE) || 1;
   const safePage = Math.max(1, Math.min(page, totalPages));
 
   const questions = await questionsCollection
-    .find({})
+    .find(filter)
     .sort({ created_at: -1 })
     .skip((safePage - 1) * ITEMS_PER_PAGE)
     .limit(ITEMS_PER_PAGE)
     .toArray();
 
   if (questions.length === 0) {
-    return { text: "База питань порожня.", keyboard: new InlineKeyboard() };
+    return { text: "База питань порожня або для цього фільтру нічого не знайдено.", keyboard: new InlineKeyboard() };
   }
 
-  let messageText = `🕵️‍♂️ **Анонімні питання (Сторінка ${safePage} з ${totalPages})**\nВсього питань: ${totalQuestions}\n\n`;
+  let messageText = `🕵️‍♂️ **Анонімні питання (Сторінка ${safePage} з ${totalPages})**\nВсього питань: ${totalQuestions}${ownerInfo}\n\n`;
 
   for (const q of questions) {
     const senderName = q.sender_first_name || "Unknown";
@@ -38,12 +54,13 @@ async function buildAdminPage(page: number, passwordPrefix: string) {
   }
 
   const keyboard = new InlineKeyboard();
+  const cbSuffix = cleanUsername ? `_${cleanUsername}` : "";
   
   if (safePage > 1) {
-    keyboard.text("⬅️ Попередня", `adm_pg_${safePage - 1}_${passwordPrefix}`);
+    keyboard.text("⬅️ Попередня", `adm_pg_${safePage - 1}_${passwordPrefix}${cbSuffix}`);
   }
   if (safePage < totalPages) {
-    keyboard.text("Наступна ➡️", `adm_pg_${safePage + 1}_${passwordPrefix}`);
+    keyboard.text("Наступна ➡️", `adm_pg_${safePage + 1}_${passwordPrefix}${cbSuffix}`);
   }
 
   return { text: messageText, keyboard };
@@ -54,12 +71,18 @@ export async function handleAdmin(ctx: CommandContext<Context>): Promise<void> {
   const adminPassword = process.env.ADMIN_PASSWORD;
   const payload = ctx.match;
 
-  if (!adminPassword || payload !== adminPassword) {
+  if (!adminPassword) return;
+
+  const parts = payload.trim().split(/\s+/);
+  const passwordInput = parts[0];
+  const targetUsername = parts[1];
+
+  if (passwordInput !== adminPassword) {
     return;
   }
 
   const passwordPrefix = adminPassword.substring(0, 10);
-  const { text, keyboard } = await buildAdminPage(1, passwordPrefix);
+  const { text, keyboard } = await buildAdminPage(1, passwordPrefix, targetUsername);
 
   await ctx.reply(text, { parse_mode: "Markdown", reply_markup: keyboard });
 }
@@ -73,10 +96,11 @@ export async function handleAdminPagination(ctx: Context): Promise<void> {
   if (!data || !data.startsWith("adm_pg_")) return;
 
   const parts = data.split("_");
-  if (parts.length !== 4) return;
+  if (parts.length < 4) return;
 
   const page = parseInt(parts[2], 10);
   const prefix = parts[3];
+  const targetUsername = parts.slice(4).join("_") || undefined;
 
   const expectedPrefix = adminPassword.substring(0, 10);
 
@@ -86,7 +110,7 @@ export async function handleAdminPagination(ctx: Context): Promise<void> {
     return;
   }
 
-  const { text, keyboard } = await buildAdminPage(page, expectedPrefix);
+  const { text, keyboard } = await buildAdminPage(page, expectedPrefix, targetUsername);
 
   await ctx.editMessageText(text, {
     parse_mode: "Markdown",

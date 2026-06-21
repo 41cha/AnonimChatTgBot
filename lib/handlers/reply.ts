@@ -5,7 +5,7 @@ import {
   getReplySessions,
   getPendingQuestions,
   Question,
-} from "../db.js";
+} from "../db";
 
 /**
  * Handles the "Reply" inline button callback.

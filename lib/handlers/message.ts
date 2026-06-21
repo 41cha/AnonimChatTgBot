@@ -1,6 +1,6 @@
 import { Context, InlineKeyboard } from "grammy";
-import { getQuestions, getPendingQuestions } from "../db.js";
-import { handleReplyText } from "./reply.js";
+import { getQuestions, getPendingQuestions } from "../db";
+import { handleReplyText } from "./reply";
 
 /**
  * Handles all incoming text messages.

@@ -1,7 +1,7 @@
 import { Bot } from "grammy";
-import { handleStart } from "./handlers/start.js";
-import { handleMessage } from "./handlers/message.js";
-import { handleReplyCallback } from "./handlers/reply.js";
+import { handleStart } from "./handlers/start";
+import { handleMessage } from "./handlers/message";
+import { handleReplyCallback } from "./handlers/reply";
 
 // ---------------------------------------------------------------------------
 // Bot instance

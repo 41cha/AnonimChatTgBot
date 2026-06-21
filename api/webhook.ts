@@ -1,5 +1,5 @@
 import { webhookCallback } from "grammy";
-import { bot } from "../lib/bot.js";
+import { bot } from "../lib/bot";
 
 /**
  * Vercel serverless entry point.

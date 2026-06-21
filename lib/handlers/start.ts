@@ -1,5 +1,5 @@
 import { CommandContext, Context } from "grammy";
-import { getOwners, getPendingQuestions } from "../db.js";
+import { getOwners, getPendingQuestions } from "../db";
 
 /**
  * Handles both `/start` (register as owner) and `/start <owner_id>` (begin

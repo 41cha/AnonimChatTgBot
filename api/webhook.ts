@@ -8,4 +8,6 @@ import { bot } from "../lib/bot.js";
  * via the `X-Telegram-Bot-Api-Secret-Token` header by grammY's
  * webhookCallback under the hood.
  */
-export default webhookCallback(bot, "std/http");
+export default webhookCallback(bot, "express", {
+  secretToken: process.env.WEBHOOK_SECRET,
+});

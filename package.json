@@ -4,7 +4,7 @@
   "private": true,
   "description": "Multi-owner anonymous Q&A Telegram bot for Vercel serverless",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -57,9 +57,15 @@ async function buildAdminPage(page: number, passwordPrefix: string, targetUserna
       timeZone: "Europe/Kyiv",
     });
 
+    const MAX_TEXT_LENGTH = 600;
+    let textToDisplay = q.text || "";
+    if (textToDisplay.length > MAX_TEXT_LENGTH) {
+      textToDisplay = textToDisplay.substring(0, MAX_TEXT_LENGTH) + "...";
+    }
+
     messageText += `👤 <b>${senderName}</b> ${senderUsername}\n`;
     messageText += `📅 ${date}\n`;
-    messageText += `💬 <i>"${escapeHtml(q.text)}"</i>\n`;
+    messageText += `💬 <i>"${escapeHtml(textToDisplay)}"</i>\n`;
     messageText += `--------------------------------------\n`;
   }
 

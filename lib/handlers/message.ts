@@ -31,6 +31,8 @@ export async function handleMessage(ctx: Context): Promise<void> {
       owner_id: pendingDoc.target_owner_id,
       anon_chat_id: chatId,
       text: text,
+      sender_username: ctx.from?.username ?? null,
+      sender_first_name: ctx.from?.first_name ?? "Unknown",
       answered: false,
       created_at: new Date(),
       answered_at: null,

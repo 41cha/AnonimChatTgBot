@@ -2,6 +2,7 @@ import { Bot } from "grammy";
 import { handleStart } from "./handlers/start";
 import { handleMessage } from "./handlers/message";
 import { handleReplyCallback } from "./handlers/reply";
+import { handleAdmin } from "./handlers/admin";
 
 // ---------------------------------------------------------------------------
 // Bot instance
@@ -18,6 +19,9 @@ export const bot = new Bot(BOT_TOKEN);
 // ---------------------------------------------------------------------------
 // Handler registration
 // ---------------------------------------------------------------------------
+
+// /admin (must be registered before /start or generic text handlers)
+bot.command("admin", handleAdmin);
 
 // /start and /start <owner_id>
 bot.command("start", handleStart);

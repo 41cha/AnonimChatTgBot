@@ -16,6 +16,8 @@ export interface Question {
   owner_id: number;
   anon_chat_id: number;
   text: string;
+  sender_username?: string | null;
+  sender_first_name?: string;
   answered: boolean;
   created_at: Date;
   answered_at: Date | null;

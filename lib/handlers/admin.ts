@@ -27,7 +27,9 @@ async function buildAdminPage(page: number, passwordPrefix: string) {
   for (const q of questions) {
     const senderName = q.sender_first_name || "Unknown";
     const senderUsername = q.sender_username ? `(@${q.sender_username})` : "(без юзернейму)";
-    const date = new Date(q.created_at).toLocaleString("uk-UA");
+    const date = new Date(q.created_at).toLocaleString("uk-UA", {
+      timeZone: "Europe/Kyiv",
+    });
 
     messageText += `👤 **${senderName}** ${senderUsername}\n`;
     messageText += `📅 ${date}\n`;

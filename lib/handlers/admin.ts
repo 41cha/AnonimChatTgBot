@@ -59,8 +59,9 @@ async function buildAdminPage(page: number, passwordPrefix: string, targetUserna
 
     const MAX_TEXT_LENGTH = 600;
     let textToDisplay = q.text || "";
-    if (textToDisplay.length > MAX_TEXT_LENGTH) {
-      textToDisplay = textToDisplay.substring(0, MAX_TEXT_LENGTH) + "...";
+    const chars = [...textToDisplay];
+    if (chars.length > MAX_TEXT_LENGTH) {
+      textToDisplay = chars.slice(0, MAX_TEXT_LENGTH).join("") + "...";
     }
 
     messageText += `👤 <b>${senderName}</b> ${senderUsername}\n`;
